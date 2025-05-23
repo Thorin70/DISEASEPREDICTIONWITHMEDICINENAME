@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disease Prediction </title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #121212;
+            color: #ffffff;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            margin: auto;
+            background: #121212;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-top: 50px;
+        }
+        .symptom-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .symptom {
+            padding: 10px 15px;
+            background-color: #333;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .symptom.selected {
+            background-color: #007bff;
+        }
+        .load-more-btn, .predict-btn {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        .load-more-btn {
+            background-color: #007bff;
+            color: white;
+        }
+        .predict-btn {
+            background-color: #28a745;
+            color: white;
+        }
+        .result-box {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #222;
+    border-radius: 10px;
+    box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;  /* Centers text */
+    justify-content: center;
+    width: 50%;  /* Adjust width as needed */
+    max-width: 500px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+        .disease {
+            font-size: 22px;
+            font-weight: bold;
+            color: #ff4757;
+            margin-bottom: 5px;
+        }
+        .medicine {
+            font-size: 22px;
+            color: #1abc9c;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>DISEASE PREDICTION SYSTEM</h2>
+    <div class="symptom-container" id="symptomContainer"></div>
+    <button class="load-more-btn" onclick="loadMoreSymptoms()">Load More Symptoms</button>
+    <button class="predict-btn" onclick="predictDisease()">Predict</button>
+    <div id="result" class="result-box" style="display: none;"></div>
+</div>
+
+<script>
+    const symptoms = [
+        "abdominal_pain", "abnormal_menstruation", "acidity", "acute_liver_failure", "altered_sensorium", 
+        "anxiety", "back_pain", "belly_pain", "blackheads", "bladder_discomfort", "blister", "blood_in_sputum",
+        "bloody_stool", "blurred_and_distorted_vision", "breathlessness", "brittle_nails", "bruising", 
+        "burning_micturition", "chest_pain", "chills", "cold_hands_and_feets", "congestion", "constipation", 
+        "continuous_feel_of_urine", "continuous_sneezing", "cough", "cramps", "dark_urine", "dehydration", 
+        "depression", "diarrhoea", "dischromic_patches", "distention_of_abdomen", "dizziness", "drying_and_tingling_lips", 
+        "enlarged_thyroid", "excessive_hunger", "extra_marital_contacts", "family_history", "fast_heart_rate", 
+        "fatigue", "fluid_overload", "foul_smell_of_urine", "headache", "high_fever", "hip_joint_pain", "history_of_alcohol_consumption", 
+        "increased_appetite", "indigestion", "inflammatory_nails", "internal_itching", "irregular_sugar_level", 
+        "irritability", "irritation_in_anus", "joint_pain", "knee_pain", "lack_of_concentration", "lethargy", 
+        "loss_of_appetite", "loss_of_balance", "loss_of_smell", "malaise", "mild_fever", "mood_swings", "movement_stiffness", 
+        "mucoid_sputum", "muscle_pain", "muscle_wasting", "muscle_weakness", "nausea", "neck_pain", "nodal_skin_eruptions"
+    ];
+
+    let visibleSymptoms = 10;
+    function loadSymptoms() {
+        const container = document.getElementById("symptomContainer");
+        container.innerHTML = "";
+        for (let i = 0; i < visibleSymptoms && i < symptoms.length; i++) {
+            let span = document.createElement("span");
+            span.className = "symptom";
+            span.textContent = symptoms[i].replace(/_/g, " ");
+            span.onclick = () => span.classList.toggle("selected");
+            container.appendChild(span);
+        }
+    }
+    function loadMoreSymptoms() {
+        visibleSymptoms += 10;
+        loadSymptoms();
+    }
+    function predictDisease() {
+        let selectedSymptoms = {};
+        document.querySelectorAll(".symptom.selected").forEach(symptom => {
+            selectedSymptoms[symptom.textContent.replace(/ /g, "_")] = "1";
+        });
+        fetch("/predict", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(selectedSymptoms)
+        })
+        .then(response => response.json())
+        .then(data => {
+            let resultBox = document.getElementById("result");
+            if (data.error) {
+                resultBox.innerHTML = `<span style='color: red;'>${data.error}</span>`;
+            } else {
+                resultBox.innerHTML = `
+                    <div class='disease'>Predicted Disease: ${data.disease}</div>
+                    <div class='medicine'>Recommended Medicine: ${data.medicine}</div>
+                `;
+            }
+            resultBox.style.display = "block";
+        });
+    }
+    loadSymptoms();
+</script>
+
+</body>
+</html>
